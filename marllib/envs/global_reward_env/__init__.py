@@ -23,6 +23,27 @@
 COOP_ENV_REGISTRY = {}
 
 try:
+    from marllib.envs.global_reward_env.cyborg_fcoop import RLlibCBG_FCOOP
+
+    COOP_ENV_REGISTRY["cyborg"] = RLlibCBG_FCOOP
+except Exception as e:
+    COOP_ENV_REGISTRY["cyborg"] = str(e)
+
+try:
+    from marllib.envs.global_reward_env.wmt_fcoop import RLlibWMT_FCOOP
+
+    COOP_ENV_REGISTRY["wmt"] = RLlibWMT_FCOOP
+except Exception as e:
+    COOP_ENV_REGISTRY["wmt"] = str(e)
+
+try:
+    from marllib.envs.global_reward_env.mcy_fcoop import RLlibMCY_FCOOP
+
+    COOP_ENV_REGISTRY["mcy"] = RLlibMCY_FCOOP
+except Exception as e:
+    COOP_ENV_REGISTRY["mcy"] = str(e)
+
+try:
     from marllib.envs.global_reward_env.gymnasium_mamujoco_fcoop import RLlibGymnasiumRoboticsMAMujoco_FCOOP
     COOP_ENV_REGISTRY["gymnasium_mamujoco"] = RLlibGymnasiumRoboticsMAMujoco_FCOOP
 

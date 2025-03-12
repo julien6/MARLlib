@@ -23,6 +23,24 @@
 ENV_REGISTRY = {}
 
 try:
+    from marllib.envs.base_env.cyborg import RLlibCBG
+    ENV_REGISTRY["cyborg"] = RLlibCBG
+except Exception as e:
+    ENV_REGISTRY["cyborg"] = str(e)
+
+try:
+    from marllib.envs.base_env.wmt import RLlibWMT
+    ENV_REGISTRY["wmt"] = RLlibWMT
+except Exception as e:
+    ENV_REGISTRY["wmt"] = str(e)
+
+try:
+    from marllib.envs.base_env.mcy import RLlibMCY
+    ENV_REGISTRY["mcy"] = RLlibMCY
+except Exception as e:
+    ENV_REGISTRY["mcy"] = str(e)
+
+try:
     from marllib.envs.base_env.gymnasium_mamujoco import RLlibGymnasiumRoboticsMAMujoco
     ENV_REGISTRY["gymnasium_mamujoco"] = RLlibGymnasiumRoboticsMAMujoco
 

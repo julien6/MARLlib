@@ -33,6 +33,8 @@ from ray.tune import register_env
 from copy import deepcopy
 from tabulate import tabulate
 from typing import Any, Dict, Tuple
+from mma_wrapper.organizational_model import organizational_model
+from mma_wrapper.rllibmma_wrapper import RLlibMMA_wrapper
 import yaml
 import os
 import sys
@@ -73,6 +75,8 @@ def make_env(
         environment_name: str,
         map_name: str,
         force_coop: bool = False,
+        organizational_model: organizational_model = None,
+        render_mode: str = None,
         abs_path: str = "",
         **env_params
 ) -> Tuple[MultiAgentEnv, Dict]:
@@ -144,10 +148,13 @@ def make_env(
     env_reg_name = env_config["env"] + "_" + env_config["env_args"]["map_name"]
 
     if env_config["force_coop"]:
-        register_env(env_reg_name, lambda _: COOP_ENV_REGISTRY[env_config["env"]](env_config["env_args"]))
+        register_env(env_reg_name, lambda _: 
+        RLlibMMA_wrapper(
+        COOP_ENV_REGISTRY[env_config["env"]](env_config["env_args"]),
+        organizational_model, render_mode))
         env = COOP_ENV_REGISTRY[env_config["env"]](env_config["env_args"])
     else:
-        register_env(env_reg_name, lambda _: ENV_REGISTRY[env_config["env"]](env_config["env_args"]))
+        register_env(env_reg_name, lambda _: RLlibMMA_wrapper(ENV_REGISTRY[env_config["env"]](env_config["env_args"]), organizational_model, render_mode))
         env = ENV_REGISTRY[env_config["env"]](env_config["env_args"])
 
     return env, env_config
