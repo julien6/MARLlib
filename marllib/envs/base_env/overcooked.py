@@ -22,6 +22,8 @@
 
 import gym
 import numpy as np
+from overcooked_ai_py.visualization.state_visualizer import StateVisualizer
+import pygame
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from gym.spaces import Dict as GymDict, Discrete, Box
 
@@ -89,6 +91,9 @@ class RLlibOverCooked(MultiAgentEnv):
     def close(self):
         self.env.close()
 
+    def render(self, mode="human"):
+        return self.env.render(mode)
+
     def get_env_info(self):
         env_info = {
             "space_obs": self.observation_space,
@@ -100,3 +105,93 @@ class RLlibOverCooked(MultiAgentEnv):
         return env_info
 
 
+if __name__ == '__main__':
+
+    env = RLlibOverCooked({"map_name": "asymmetric_advantages", "horizon": 200})
+    obs = env.reset()
+    print(obs)
+    # pygame.image.save(env.render(mode="rgb_array"), "./image.png")
+
+
+    # def decompose_feature_vector(feature_vector, num_pots=2):
+    #     """
+    #     Décompose un vecteur de caractéristiques en un dictionnaire de sous-vecteurs.
+        
+    #     Arguments :
+    #         feature_vector (np.array) : Vecteur de caractéristiques du joueur
+    #         num_pots (int) : Nombre de casseroles prises en compte
+        
+    #     Retourne :
+    #         dict : Dictionnaire contenant les sous-vecteurs
+    #     """
+    #     index = 0
+    #     features = {}
+        
+    #     # Orientation (4 valeurs one-hot)
+    #     features["orientation"] = feature_vector[index:index+4]
+    #     index += 4
+        
+    #     # Objet tenu (4 valeurs one-hot)
+    #     features["held_object"] = feature_vector[index:index+4]
+    #     index += 4
+        
+    #     # Murs adjacents (4 valeurs booléennes)
+    #     features["walls"] = feature_vector[index:index+4]
+    #     index += 4
+        
+    #     # Distances aux objets clés (6 paires dx, dy)
+    #     obj_names = ["onion", "tomato", "dish", "soup", "serving", "empty_counter"]
+    #     for obj in obj_names:
+    #         features[f"dist_{obj}"] = feature_vector[index:index+2]
+    #         index += 2
+        
+    #     # Nombre d'ingrédients dans la soupe la plus proche
+    #     features["soup_num_onions"] = feature_vector[index]
+    #     index += 1
+    #     features["soup_num_tomatoes"] = feature_vector[index]
+    #     index += 1
+        
+    #     # Caractéristiques des casseroles proches
+    #     for pot_idx in range(num_pots):
+    #         features[f"pot_{pot_idx}_exists"] = feature_vector[index]
+    #         index += 1
+    #         features[f"pot_{pot_idx}_is_empty"] = feature_vector[index]
+    #         index += 1
+    #         features[f"pot_{pot_idx}_is_full"] = feature_vector[index]
+    #         index += 1
+    #         features[f"pot_{pot_idx}_is_cooking"] = feature_vector[index]
+    #         index += 1
+    #         features[f"pot_{pot_idx}_is_ready"] = feature_vector[index]
+    #         index += 1
+    #         features[f"pot_{pot_idx}_num_onions"] = feature_vector[index]
+    #         index += 1
+    #         features[f"pot_{pot_idx}_num_tomatoes"] = feature_vector[index]
+    #         index += 1
+    #         features[f"pot_{pot_idx}_cook_time"] = feature_vector[index]
+    #         index += 1
+    #         features[f"pot_{pot_idx}_dist"] = feature_vector[index:index+2]
+    #         index += 2
+        
+    #     # Distances aux autres joueurs
+    #     features["relative_distances_to_others"] = feature_vector[index:index+2]
+    #     index += 2
+        
+    #     # Position absolue
+    #     features["absolute_position"] = feature_vector[index:index+2]
+    #     index += 2
+        
+    #     return features
+
+    # # Exemple d'utilisation
+    # test_vector = np.array([ 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0., -1., -1.,  0.,  0., -1.,
+    #         2.,  0.,  0.,  0.,  0.,  2., -1.,  0.,  0.,  1.,  1.,  0.,  0.,
+    #         0.,  0.,  0.,  0., -2.,  0.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,
+    #         0., -2.,  1.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,
+    #         0.,  0., -1., -2.,  0.,  0.,  2.,  1.,  0.,  0.,  0.,  0.,  2.,
+    #     -2.,  0.,  0.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  3.,  0.,
+    #         1.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  3., -1.,  0.,  1.,  0.,
+    #         1., -5.,  1.,  6.,  2.])
+
+    # features_dict = decompose_feature_vector(test_vector)
+    # for key, value in features_dict.items():
+    #     print(f"{key}: {value}")
