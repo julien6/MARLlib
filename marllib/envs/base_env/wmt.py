@@ -93,9 +93,7 @@ class RLlibWMT(MultiAgentEnv):
         self.env.close()
 
     def render(self, mode=None):
-        self.env.render()
-        time.sleep(0.05)
-        return True
+        return self.env.render(mode)
 
     def get_env_info(self):
         env_info = {

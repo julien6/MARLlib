@@ -109,9 +109,8 @@ class RLlibCBG(MultiAgentEnv):
         return obs, rewards, dones, info
 
     def render(self, mode=None):
-        self.env.render()
-        time.sleep(0.05)
-        return True
+        time.sleep(0.5)
+        return self.env.render()
 
     def seed(self, seed=None):
         self.env.seed(seed)

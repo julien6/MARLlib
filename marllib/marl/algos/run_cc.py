@@ -41,7 +41,7 @@ def restore_config_update(exp_info, run_config, stop_config):
                 "evaluation_num_episodes": 100,
                 "evaluation_num_workers": 1,
                 "evaluation_config": {
-                    "record_env": False,
+                    "record_env": True, # False
                     "render_env": True,
                 }
             }
