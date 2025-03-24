@@ -35,14 +35,14 @@ def restore_config_update(exp_info, run_config, stop_config):
         restore_config = None
     else:
         restore_config = exp_info['restore_path']
-        if 'render' in exp_info['restore_path']:
+        if 'render' in exp_info['restore_path'] or 'record_env' in exp_info['restore_path'] or 'render_env' in exp_info['restore_path']:
             render_config = {
                 "evaluation_interval": 1,
                 "evaluation_num_episodes": 100,
                 "evaluation_num_workers": 1,
                 "evaluation_config": {
-                    "record_env": True, # False
-                    "render_env": True,
+                    "record_env": exp_info['restore_path'].get('render', exp_info['restore_path'].get('record_env', False)),
+                    "render_env": exp_info['restore_path'].get('render', exp_info['restore_path'].get('render_env', False)),
                 }
             }
 
@@ -52,8 +52,8 @@ def restore_config_update(exp_info, run_config, stop_config):
                 "training_iteration": 1,
             }
 
-            stop_config = recursive_dict_update(stop_config, render_stop_config)
-
+            stop_config = recursive_dict_update(
+                stop_config, render_stop_config)
 
     return exp_info, run_config, stop_config, restore_config
 
@@ -104,7 +104,8 @@ def run_cc(exp_info, env, model, stop=None):
     shared_policy_name = "default_policy" if exp_info["agent_level_batch_update"] else "shared_policy"
     if exp_info["share_policy"] == "all":
         if not policy_mapping_info["all_agents_one_policy"]:
-            raise ValueError("in {}, policy can not be shared, change it to 1. group 2. individual".format(map_name))
+            raise ValueError(
+                "in {}, policy can not be shared, change it to 1. group 2. individual".format(map_name))
         policies = {shared_policy_name}
         policy_mapping_fn = (
             lambda agent_id, episode, **kwargs: shared_policy_name)
@@ -132,7 +133,8 @@ def run_cc(exp_info, env, model, stop=None):
 
     elif exp_info["share_policy"] == "individual":
         if not policy_mapping_info["one_agent_one_policy"]:
-            raise ValueError("in {}, agent number too large, we disable no sharing function".format(map_name))
+            raise ValueError(
+                "in {}, agent number too large, we disable no sharing function".format(map_name))
 
         policies = {
             "policy_{}".format(i): (None, env_info["space_obs"], env_info["space_act"], {}) for i in
@@ -143,12 +145,14 @@ def run_cc(exp_info, env, model, stop=None):
             lambda agent_id: policy_ids[agent_name_ls.index(agent_id)])
 
     else:
-        raise ValueError("wrong share_policy {}".format(exp_info["share_policy"]))
+        raise ValueError("wrong share_policy {}".format(
+            exp_info["share_policy"]))
 
     # if happo or hatrpo, force individual
     if exp_info["algorithm"] in ["happo", "hatrpo"]:
         if not policy_mapping_info["one_agent_one_policy"]:
-            raise ValueError("in {}, agent number too large, we disable no sharing function".format(map_name))
+            raise ValueError(
+                "in {}, agent number too large, we disable no sharing function".format(map_name))
 
         policies = {
             "policy_{}".format(i): (None, env_info["space_obs"], env_info["space_act"], {}) for i in
@@ -185,7 +189,8 @@ def run_cc(exp_info, env, model, stop=None):
 
     stop_config = dict_update(stop_config, stop)
 
-    exp_info, run_config, stop_config, restore_config = restore_config_update(exp_info, run_config, stop_config)
+    exp_info, run_config, stop_config, restore_config = restore_config_update(
+        exp_info, run_config, stop_config)
 
     ##################
     ### run script ###

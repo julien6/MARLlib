@@ -108,9 +108,9 @@ class RLlibCBG(MultiAgentEnv):
         dones = {"__all__": d["__all__"]}
         return obs, rewards, dones, info
 
-    def render(self, mode=None):
-        time.sleep(0.5)
-        return self.env.render()
+    def render(self, mode="human"):
+        # time.sleep(0.25)
+        return self.env.render(mode=mode)
 
     def seed(self, seed=None):
         self.env.seed(seed)

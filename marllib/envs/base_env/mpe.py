@@ -137,11 +137,8 @@ class RLlibMPE(MultiAgentEnv):
     def close(self):
         self.env.close()
 
-    def render(self, mode=None):
-        if mode is None:
-            rendered = self.env.render()
-        else:
-            rendered = self.env.render(mode=mode)
+    def render(self, mode="human"):
+        rendered = self.env.render(mode=mode)
         time.sleep(0.05)
         return rendered
 
