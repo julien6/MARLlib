@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import time
 from marllib.marl.common import dict_update, get_model_config, check_algo_type, \
     recursive_dict_update
 from marllib.marl.algos import run_il, run_vd, run_cc
@@ -28,6 +29,7 @@ from marllib.envs.base_env import ENV_REGISTRY
 from marllib.envs.global_reward_env import COOP_ENV_REGISTRY
 from marllib.marl.models import BaseRNN, BaseMLP, CentralizedCriticRNN, CentralizedCriticMLP, ValueDecompRNN, \
     ValueDecompMLP, JointQMLP, JointQRNN, DDPGSeriesRNN, DDPGSeriesMLP
+from mma_wrapper.TEMM import TEMM
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from ray.tune import register_env
 from copy import deepcopy
@@ -38,6 +40,7 @@ from mma_wrapper.rllibmma_wrapper import RLlibMMA_wrapper
 import yaml
 import os
 import sys
+import inspect
 
 SYSPARAMs = deepcopy(sys.argv)
 
@@ -86,14 +89,22 @@ def make_env(
         :param environment_name: name of the environment
         :param map_name: name of the scenario
         :param force_coop: enforce the reward return of the environment to be global
+        :param organizational_model: apply organizational model
+        :param render_mode: render during training or testing
         :param abs_path: env configuration path
         :param env_params: parameters that can be pass to the environment for customizing the environment
 
     Returns:
         Tuple[MultiAgentEnv, Dict]: env instance & env configuration dict
     """
+
+    absolute_path = os.path.abspath(inspect.stack()[1].filename)
+    analysis_folder = os.path.join(
+        os.path.dirname(absolute_path), "analysis_results")
+
     if abs_path != "":
-        env_config_file_path = os.path.join(os.path.dirname(__file__), abs_path)
+        env_config_file_path = os.path.join(
+            os.path.dirname(__file__), abs_path)
     else:
         # default config
         env_config_file_path = os.path.join(os.path.dirname(__file__),
@@ -104,7 +115,8 @@ def make_env(
         f.close()
 
     # update function-fixed config
-    env_config_dict["env_args"] = dict_update(env_config_dict["env_args"], env_params, True)
+    env_config_dict["env_args"] = dict_update(
+        env_config_dict["env_args"], env_params, True)
 
     # user commandline config
     user_env_args = {}
@@ -114,7 +126,8 @@ def make_env(
             user_env_args[key] = value
 
     # update commandline config
-    env_config_dict["env_args"] = dict_update(env_config_dict["env_args"], user_env_args, True)
+    env_config_dict["env_args"] = dict_update(
+        env_config_dict["env_args"], user_env_args, True)
     env_config_dict["env_args"]["map_name"] = map_name
     env_config_dict["force_coop"] = force_coop
 
@@ -137,7 +150,8 @@ def make_env(
                 check_current_used_env_flag = True
 
     print(tabulate(env_reg_ls,
-                   headers=['Env_Name', 'Check_Status', "Error_Log", "Config_File_Location", "Env_File_Location"],
+                   headers=['Env_Name', 'Check_Status', "Error_Log",
+                            "Config_File_Location", "Env_File_Location"],
                    tablefmt='grid'))
 
     if not check_current_used_env_flag:
@@ -148,13 +162,15 @@ def make_env(
     env_reg_name = env_config["env"] + "_" + env_config["env_args"]["map_name"]
 
     if env_config["force_coop"]:
-        register_env(env_reg_name, lambda _: 
-        RLlibMMA_wrapper(
-        COOP_ENV_REGISTRY[env_config["env"]](env_config["env_args"]),
-        organizational_model, render_mode))
+        register_env(env_reg_name, lambda _:
+                     RLlibMMA_wrapper(
+                         COOP_ENV_REGISTRY[env_config["env"]](
+                             env_config["env_args"]),
+                         organizational_model, render_mode, analysis_folder))
         env = COOP_ENV_REGISTRY[env_config["env"]](env_config["env_args"])
     else:
-        register_env(env_reg_name, lambda _: RLlibMMA_wrapper(ENV_REGISTRY[env_config["env"]](env_config["env_args"]), organizational_model, render_mode))
+        register_env(env_reg_name, lambda _: RLlibMMA_wrapper(ENV_REGISTRY[env_config["env"]](
+            env_config["env_args"]), organizational_model, render_mode, analysis_folder))
         env = ENV_REGISTRY[env_config["env"]](env_config["env_args"])
 
     return env, env_config
@@ -210,7 +226,8 @@ def build_model(
     elif model_preference["core_arch"] in ["mlp"]:
         model_config = get_model_config("mlp")
     else:
-        raise NotImplementedError("{} not supported agent model arch".format(model_preference["core_arch"]))
+        raise NotImplementedError(
+            "{} not supported agent model arch".format(model_preference["core_arch"]))
 
     if len(environment[0].observation_space.spaces["obs"].shape) == 1:
         encoder = "fc_encoder"
@@ -220,13 +237,15 @@ def build_model(
     # encoder config
     encoder_arch_config = get_model_config(encoder)
     model_config = recursive_dict_update(model_config, encoder_arch_config)
-    model_config = recursive_dict_update(model_config, {"model_arch_args": model_preference})
+    model_config = recursive_dict_update(
+        model_config, {"model_arch_args": model_preference})
 
     if algorithm.algo_type == "VD":
         mixer_arch_config = get_model_config("mixer")
         model_config = recursive_dict_update(model_config, mixer_arch_config)
         if "mixer_arch" in model_preference:
-            recursive_dict_update(model_config, {"model_arch_args": model_preference})
+            recursive_dict_update(
+                model_config, {"model_arch_args": model_preference})
 
     return model_class, model_config
 
@@ -260,12 +279,15 @@ class _Algo:
             _Algo
         """
         if hyperparam_source in ["common", "test"]:
-            rel_path = "algos/hyperparams/{}/{}.yaml".format(hyperparam_source, self.name)
+            rel_path = "algos/hyperparams/{}/{}.yaml".format(
+                hyperparam_source, self.name)
         else:
-            rel_path = "algos/hyperparams/finetuned/{}/{}.yaml".format(hyperparam_source, self.name)
+            rel_path = "algos/hyperparams/finetuned/{}/{}.yaml".format(
+                hyperparam_source, self.name)
 
         if not os.path.exists(os.path.join(os.path.dirname(__file__), rel_path)):
-            rel_path = "../../examples/config/algo_config/{}.yaml".format(self.name)
+            rel_path = "../../examples/config/algo_config/{}.yaml".format(
+                self.name)
 
         with open(os.path.join(os.path.dirname(__file__), rel_path), "r") as f:
             algo_config_dict = yaml.load(f, Loader=yaml.FullLoader)
@@ -310,8 +332,10 @@ class _Algo:
         self.config_dict = info
         self.config_dict = recursive_dict_update(self.config_dict, model_info)
 
-        self.config_dict = recursive_dict_update(self.config_dict, self.algo_parameters)
-        self.config_dict = recursive_dict_update(self.config_dict, running_params)
+        self.config_dict = recursive_dict_update(
+            self.config_dict, self.algo_parameters)
+        self.config_dict = recursive_dict_update(
+            self.config_dict, running_params)
 
         self.config_dict['algorithm'] = self.name
 
@@ -324,7 +348,7 @@ class _Algo:
         else:
             raise ValueError("not supported type {}".format(self.algo_type))
 
-    def render(self, env: Tuple[MultiAgentEnv, Dict], model: Tuple[Any, Dict], stop: Dict = None,
+    def render(self, env: Tuple[MultiAgentEnv, Dict], model: Tuple[Any, Dict], enable_temm: bool = False, stop: Dict = None,
                **running_params) -> None:
         """
         Entering point of the rendering, running a one iteration fit instead
@@ -336,8 +360,27 @@ class _Algo:
         Returns:
             None
         """
+        RLlibMMA_wrapper.temm_enabled = enable_temm
+        
 
         self.fit(env, model, stop, **running_params)
+
+        if enable_temm:
+
+            absolute_path = os.path.abspath(inspect.stack()[1].filename)
+            analysis_folder = os.path.join(
+                os.path.dirname(absolute_path), "analysis_results")
+
+            if not os.path.exists(analysis_folder):
+                os.mkdir(analysis_folder)
+                os.mkdir(os.path.join(analysis_folder, "trajectories"))
+                os.mkdir(os.path.join(analysis_folder, "figures"))
+
+            print("\n\nRunning TEMM analysis...")
+            temm = TEMM(analysis_results_path=analysis_folder)
+            temm.generate_figures()
+            time.sleep(0.1)
+            print("Finished TEMM analysis")
 
 
 class _AlgoManager:
