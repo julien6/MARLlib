@@ -24,7 +24,7 @@ env: overcooked
 
 env_args:
   map_name: "asymmetric_advantages" #  https://github.com/Replicable-MARL/overcooked_ai/tree/master/src/overcooked_ai_py/data/layouts
-  horizon: 200
+  horizon: 20
 
 mask_flag: False
 global_state_flag: False

@@ -361,7 +361,6 @@ class _Algo:
             None
         """
         RLlibMMA_wrapper.temm_enabled = enable_temm
-        
 
         self.fit(env, model, stop, **running_params)
 
@@ -375,7 +374,8 @@ class _Algo:
                 os.mkdir(analysis_folder)
                 os.mkdir(os.path.join(analysis_folder, "trajectories"))
                 os.mkdir(os.path.join(analysis_folder, "figures"))
-
+                os.mkdir(os.path.join(analysis_folder,
+                         "inferred_organizational_specifications"))
             print("\n\nRunning TEMM analysis...")
             temm = TEMM(analysis_results_path=analysis_folder)
             temm.generate_figures()
