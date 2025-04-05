@@ -29,7 +29,7 @@ from marllib.envs.base_env import ENV_REGISTRY
 from marllib.envs.global_reward_env import COOP_ENV_REGISTRY
 from marllib.marl.models import BaseRNN, BaseMLP, CentralizedCriticRNN, CentralizedCriticMLP, ValueDecompRNN, \
     ValueDecompMLP, JointQMLP, JointQRNN, DDPGSeriesRNN, DDPGSeriesMLP
-from mma_wrapper.TEMM import TEMM
+from mma_wrapper.temm.TEMM import TEMM
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from ray.tune import register_env
 from copy import deepcopy
@@ -378,7 +378,7 @@ class _Algo:
                          "inferred_organizational_specifications"))
             print("\n\nRunning TEMM analysis...")
             temm = TEMM(analysis_results_path=analysis_folder)
-            temm.generate_figures()
+            temm.run_global()
             time.sleep(0.1)
             print("Finished TEMM analysis")
 
